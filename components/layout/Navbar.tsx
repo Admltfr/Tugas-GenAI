@@ -4,18 +4,19 @@ import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 
 export const Navbar: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
-  const isDark = theme === "dark";
+  const { toggleTheme } = useTheme();
 
   return (
     <nav className="bg-white/95 border-b border-gray-200 sticky top-0 z-50 backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-950/90 print:hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">S</span>
             </div>
-            <span className="font-bold text-lg text-gray-900 dark:text-white">SuratAI</span>
+            <span className="font-bold text-lg text-gray-900 dark:text-white">
+              SuratAI
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -43,11 +44,16 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={`Aktifkan mode ${isDark ? "terang" : "gelap"}`}
-              title={`Aktifkan mode ${isDark ? "terang" : "gelap"}`}
+              aria-label="Ganti tema"
+              title="Ganti tema"
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg text-gray-700 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
             >
-              <span aria-hidden="true">{isDark ? "☀" : "☾"}</span>
+              <span aria-hidden="true" className="dark:hidden">
+                ☾
+              </span>
+              <span aria-hidden="true" className="hidden dark:inline">
+                ☀
+              </span>
             </button>
             <Link
               href="/#templates"

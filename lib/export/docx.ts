@@ -12,6 +12,7 @@ import {
   ImageRun,
 } from "docx";
 import type { LamaranForm, MagangForm } from "@/types";
+type ExportForm = LamaranForm | MagangForm;
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
@@ -70,22 +71,86 @@ const getBase64Buffer = (base64: string) => {
   }
 };
 
+const getImageMimeType = (base64: string) => {
+  const match = base64.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/);
+
+  if (!match) {
+    return "image/png";
+  }
+
+  return match[1];
+};
+
+const toDocxImageType = (mimeType: string) => {
+  switch (mimeType) {
+    case "image/jpeg":
+    case "image/jpg":
+      return "jpg" as const;
+    case "image/png":
+      return "png" as const;
+    case "image/gif":
+      return "gif" as const;
+    case "image/bmp":
+      return "bmp" as const;
+    default:
+      return "png" as const;
+  }
+};
+
+const normalizeSignatureImage = async (base64: string) => {
+  const mimeType = getImageMimeType(base64);
+
+  if (mimeType === "image/png") {
+    return {
+      buffer: getBase64Buffer(base64),
+      type: "png" as const,
+    };
+  }
+
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Failed to load signature image"));
+    img.src = base64;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return {
+      buffer: getBase64Buffer(base64),
+      type: toDocxImageType(mimeType),
+    };
+  }
+
+  context.drawImage(image, 0, 0);
+
+  const pngDataUrl = canvas.toDataURL("image/png");
+  return {
+    buffer: getBase64Buffer(pngDataUrl),
+    type: "png" as const,
+  };
+};
+
 export const exportToDocx = async (
   type: "lamaran" | "magang",
-  data: any,
-  fileName: string
+  data: ExportForm,
+  fileName: string,
 ) => {
-  let docChildren: any[] = [];
+  const docChildren: Array<Paragraph | Table> = [];
 
   const dateStr = `Bandung, ${formatDate(new Date().toISOString())}`;
-  
+
   // Header / Date
   docChildren.push(
     new Paragraph({
       alignment: AlignmentType.RIGHT,
       children: [new TextRun(dateStr)],
       spacing: { after: 400 },
-    })
+    }),
   );
 
   if (type === "lamaran") {
@@ -127,7 +192,7 @@ export const exportToDocx = async (
           }),
         ],
       }),
-      new Paragraph({ spacing: { after: 400 } })
+      new Paragraph({ spacing: { after: 400 } }),
     );
 
     // Kepada Yth
@@ -143,7 +208,7 @@ export const exportToDocx = async (
         ],
       }),
       new Paragraph({ text: d.alamatPerusahaan || "[Alamat Perusahaan]" }),
-      new Paragraph({ text: "di tempat", spacing: { after: 400 } })
+      new Paragraph({ text: "di tempat", spacing: { after: 400 } }),
     );
 
     docChildren.push(
@@ -154,7 +219,9 @@ export const exportToDocx = async (
         indent: { firstLine: 720 },
         spacing: { after: 200 },
       }),
-      new Paragraph({ text: "Adapun identitas diri saya adalah sebagai berikut:" }),
+      new Paragraph({
+        text: "Adapun identitas diri saya adalah sebagai berikut:",
+      }),
       new Table({
         width: { size: 90, type: WidthType.PERCENTAGE },
         borders: createEmptyBorders(),
@@ -163,9 +230,12 @@ export const exportToDocx = async (
           createDataRow("Nama", d.namaLengkap || "[Nama Lengkap]"),
           createDataRow(
             "Tempat, Tanggal Lahir",
-            `${d.tempatLahir || "[Tempat]"}, ${formatDate(d.tanggalLahir) || "[Tanggal Lahir]"}`
+            `${d.tempatLahir || "[Tempat]"}, ${formatDate(d.tanggalLahir) || "[Tanggal Lahir]"}`,
           ),
-          createDataRow("Pendidikan Terakhir", (d.pendidikanTerakhir || "[Pendidikan]").toUpperCase()),
+          createDataRow(
+            "Pendidikan Terakhir",
+            (d.pendidikanTerakhir || "[Pendidikan]").toUpperCase(),
+          ),
           createDataRow("Alamat", d.alamat || "[Alamat]"),
           createDataRow("Nomor Telepon", d.nomorTelepon || "[No. Telp]"),
           createDataRow("Email", d.email || "[Email]"),
@@ -195,7 +265,7 @@ export const exportToDocx = async (
         alignment: AlignmentType.JUSTIFIED,
         indent: { firstLine: 720 },
         spacing: { after: 400 },
-      })
+      }),
     );
   } else {
     const d = data as MagangForm;
@@ -236,7 +306,7 @@ export const exportToDocx = async (
           }),
         ],
       }),
-      new Paragraph({ spacing: { after: 400 } })
+      new Paragraph({ spacing: { after: 400 } }),
     );
 
     docChildren.push(
@@ -250,7 +320,7 @@ export const exportToDocx = async (
           }),
         ],
       }),
-      new Paragraph({ text: "di tempat", spacing: { after: 400 } })
+      new Paragraph({ text: "di tempat", spacing: { after: 400 } }),
     );
 
     docChildren.push(
@@ -262,7 +332,10 @@ export const exportToDocx = async (
         margins: { left: 720 },
         rows: [
           createDataRow("Nama", d.namaLengkap || "[Nama Lengkap]"),
-          createDataRow("Universitas / Instansi", d.universitas || "[Universitas]"),
+          createDataRow(
+            "Universitas / Instansi",
+            d.universitas || "[Universitas]",
+          ),
           createDataRow("Program Studi / Jurusan", d.jurusan || "[Jurusan]"),
           createDataRow("Semester", d.semester || "[Semester]"),
           createDataRow("No. Telepon", d.nomorTelepon || "[No. Telp]"),
@@ -299,17 +372,19 @@ export const exportToDocx = async (
         alignment: AlignmentType.JUSTIFIED,
         indent: { firstLine: 720 },
         spacing: { after: 400 },
-      })
+      }),
     );
   }
 
   // Signature Block
-  const sigBuffer = data.tandaTangan ? getBase64Buffer(data.tandaTangan) : null;
+  const signatureImage = data.tandaTangan
+    ? await normalizeSignatureImage(data.tandaTangan)
+    : null;
   const signatureParagraph = new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [new TextRun({ text: "Hormat saya," })],
   });
-  
+
   const nameParagraph = new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [
@@ -321,29 +396,27 @@ export const exportToDocx = async (
   });
 
   docChildren.push(signatureParagraph);
-  
-  if (sigBuffer) {
+
+  if (signatureImage?.buffer) {
     docChildren.push(
       new Paragraph({
         alignment: AlignmentType.RIGHT,
         children: [
           new ImageRun({
-            data: sigBuffer,
-            transformation: { width: 150, height: 90 },
-            type: "png"
+            data: signatureImage.buffer,
+            transformation: { width: 120, height: 72 },
+            type: signatureImage.type,
           }),
         ],
-      })
+      }),
     );
   } else {
     docChildren.push(
       new Paragraph({
         alignment: AlignmentType.RIGHT,
         spacing: { before: 800, after: 800 },
-        children: [
-          new TextRun({ text: "[Tanda Tangan]", italics: true }),
-        ],
-      })
+        children: [new TextRun({ text: "[Tanda Tangan]", italics: true })],
+      }),
     );
   }
 
