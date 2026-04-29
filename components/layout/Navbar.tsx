@@ -8,7 +8,7 @@ export const Navbar: React.FC = () => {
   const isDark = theme === "dark";
 
   return (
-    <nav className="bg-white/95 border-b border-gray-200 sticky top-0 z-50 backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-950/90">
+    <nav className="bg-white/95 border-b border-gray-200 sticky top-0 z-50 backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-950/90 print:hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export const Navbar: React.FC = () => {
               Fitur
             </Link>
             <Link
-              href="/#about"
+              href="/about"
               className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium dark:text-slate-300 dark:hover:text-blue-400"
             >
               Tentang

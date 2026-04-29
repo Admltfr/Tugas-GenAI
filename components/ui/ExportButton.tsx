@@ -1,126 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { useFormContext } from "@/context/FormContext";
+import { exportToPDF } from "@/lib/export/pdf";
+import { exportToDocx } from "@/lib/export/docx";
 
 interface ExportButtonProps {
   fileName: string;
+  type: "lamaran" | "magang";
 }
 
-const buildExportHtml = (letterHtml: string) => `<!doctype html>
-<html lang="id">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Export Surat</title>
-    <style>
-      body {
-        margin: 0;
-        background: #e5e7eb;
-        color: #020617;
-        font-family: "Times New Roman", Times, serif;
-      }
-
-      .page {
-        width: 210mm;
-        min-height: 297mm;
-        margin: 24px auto;
-        padding: 20mm 24mm 22mm;
-        background: white;
-        box-sizing: border-box;
-        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
-        font-size: 12pt;
-        line-height: 1.5;
-      }
-
-      table {
-        border-collapse: collapse;
-      }
-
-      @media print {
-        body {
-          background: white;
-        }
-
-        .page {
-          margin: 0;
-          box-shadow: none;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <main class="page">${letterHtml}</main>
-  </body>
-</html>`;
-
-export const ExportButton: React.FC<ExportButtonProps> = ({ fileName }) => {
+export const ExportButton: React.FC<ExportButtonProps> = ({ fileName, type }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { state } = useFormContext();
 
   useEffect(() => {
-    if (!isExporting) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    const interval = window.setInterval(() => {
-      setProgress((current) => Math.min(current + 18, 92));
-    }, 120);
-
-    return () => window.clearInterval(interval);
-  }, [isExporting]);
-
-  const handleExport = async () => {
-    const letter = document.querySelector("[data-letter-document]");
-    if (!letter) return;
+  const handleExportPDF = async () => {
+    setIsOpen(false);
+    const element = document.querySelector("[data-letter-document]") as HTMLElement;
+    if (!element) return;
 
     setIsExporting(true);
-    setProgress(12);
-
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
-
-    const exportHtml = buildExportHtml(letter.innerHTML);
-    const blob = new Blob([exportHtml], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `${fileName}.html`;
-    link.click();
-
-    URL.revokeObjectURL(url);
-    setProgress(100);
-
-    window.setTimeout(() => {
+    try {
+      await exportToPDF(element, fileName);
+    } catch (error) {
+      console.error("PDF Export failed:", error);
+    } finally {
       setIsExporting(false);
-      setProgress(0);
-    }, 450);
+    }
+  };
+
+  const handleExportDocx = async () => {
+    setIsOpen(false);
+    setIsExporting(true);
+    try {
+      const data = type === "lamaran" ? state.lamaran : state.magang;
+      await exportToDocx(type, data || {}, fileName);
+    } catch (error) {
+      console.error("DOCX Export failed:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handlePrint = () => {
+    setIsOpen(false);
+    window.print();
   };
 
   return (
-    <div className="w-full max-w-44">
-      <button
-        type="button"
-        onClick={handleExport}
-        disabled={isExporting}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-wait disabled:bg-slate-500 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-500 dark:disabled:text-white"
-      >
-        {isExporting && (
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-slate-950/30 dark:border-t-slate-950" />
-        )}
-        {isExporting ? "Mengekspor..." : "Export File"}
-      </button>
-
-      {isExporting && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700"
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <div>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          disabled={isExporting}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-wait disabled:bg-slate-500 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
         >
-          <motion.div
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="h-full rounded-full bg-blue-600 dark:bg-blue-400"
-          />
-        </motion.div>
+          {isExporting ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-slate-950/30 dark:border-t-slate-950" />
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          )}
+          {isExporting ? "Memproses..." : "Cetak / Export"}
+        </button>
+      </div>
+
+      {isOpen && (
+        <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-slate-800 dark:ring-slate-700">
+          <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+            <button
+              onClick={handleExportPDF}
+              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-200 dark:hover:bg-slate-700"
+              role="menuitem"
+            >
+              Export PDF (.pdf)
+            </button>
+            <button
+              onClick={handleExportDocx}
+              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-200 dark:hover:bg-slate-700"
+              role="menuitem"
+            >
+              Export Word (.docx)
+            </button>
+            <button
+              onClick={handlePrint}
+              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-200 dark:hover:bg-slate-700"
+              role="menuitem"
+            >
+              Print Langsung
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

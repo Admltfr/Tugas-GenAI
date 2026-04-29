@@ -23,7 +23,7 @@ export default function LamaranPage() {
           initial={{ opacity: 0, x: -18 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.42, ease: "easeOut" }}
-          className="border-r border-slate-200 bg-white px-4 py-6 transition-colors sm:px-6 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:px-8 lg:py-8 dark:border-slate-800 dark:bg-slate-950"
+          className="border-r border-slate-200 bg-white px-4 py-6 transition-colors sm:px-6 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:px-8 lg:py-8 dark:border-slate-800 dark:bg-slate-950 print:hidden"
         >
           <div className="mx-auto max-w-3xl">
             <Link
@@ -58,7 +58,7 @@ export default function LamaranPage() {
           transition={{ duration: 0.42, ease: "easeOut", delay: 0.08 }}
           className="bg-slate-100 px-4 py-6 transition-colors sm:px-6 lg:max-h-[calc(100vh-4rem)] lg:overflow-hidden lg:p-8 dark:bg-slate-900"
         >
-          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between print:hidden">
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Preview
@@ -71,7 +71,7 @@ export default function LamaranPage() {
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/50 dark:text-blue-300">
                 Real-time
               </span>
-              <ExportButton fileName="surat-lamaran-kerja" />
+              <ExportButton fileName="surat-lamaran-kerja" type="lamaran" />
             </div>
           </div>
 
