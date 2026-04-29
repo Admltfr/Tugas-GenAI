@@ -10,6 +10,10 @@ export interface BiodataForm {
   tandaTangan: string;
 }
 
+export interface ValidationError {
+  [key: string]: string;
+}
+
 export interface LamaranForm extends BiodataForm {
   posisiDilamar: string;
   namaPerusahaan: string;

@@ -49,9 +49,12 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
 
   useEffect(() => {
     if (isHydrated && state.biodata) {
-      setFormData(state.biodata);
+      const timer = setTimeout(() => {
+        setFormData(state.biodata as BiodataForm);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [isHydrated]); // Only run once when hydrated
+  }, [isHydrated, state.biodata]); // Only run once when hydrated
 
   useEffect(() => {
     if (isHydrated) {

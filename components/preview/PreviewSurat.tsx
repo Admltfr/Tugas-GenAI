@@ -1,12 +1,49 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
+import { motion } from "framer-motion";
 import { useFormContext } from "@/context/FormContext";
 import type { LamaranForm, MagangForm } from "@/types";
 
 interface PreviewSuratProps {
   type: "lamaran" | "magang";
 }
+
+const defaultLamaranData: LamaranForm = {
+  namaLengkap: "",
+  tempatLahir: "",
+  tanggalLahir: "",
+  alamat: "",
+  email: "",
+  nomorTelepon: "",
+  pendidikanTerakhir: "",
+  deskripsiDiri: "",
+  tandaTangan: "",
+  posisiDilamar: "",
+  namaPerusahaan: "",
+  alamatPerusahaan: "",
+  sumberLowongan: "",
+  alasanMelamar: "",
+};
+
+const defaultMagangData: MagangForm = {
+  namaLengkap: "",
+  tempatLahir: "",
+  tanggalLahir: "",
+  alamat: "",
+  email: "",
+  nomorTelepon: "",
+  pendidikanTerakhir: "",
+  deskripsiDiri: "",
+  tandaTangan: "",
+  universitas: "",
+  jurusan: "",
+  semester: "",
+  tujuanMagang: "",
+  lamaMagang: "",
+  namaPerusahaanTujuan: "",
+};
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
@@ -21,221 +58,269 @@ const formatDate = (dateString: string) => {
   return formatter.format(date);
 };
 
+const LetterShell = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.985 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.35, ease: "easeOut" }}
+    className="h-full max-h-[880px] overflow-auto rounded-lg border border-slate-200 bg-slate-200/70 p-4 shadow-inner transition-colors sm:p-6 dark:border-slate-700 dark:bg-slate-900"
+  >
+    <motion.article
+      data-letter-document
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut", delay: 0.08 }}
+      className="mx-auto min-h-[297mm] w-[210mm] bg-white px-[24mm] pb-[22mm] pt-[20mm] font-['Times_New_Roman',Times,serif] text-[12pt] leading-[1.5] text-slate-950 shadow-[0_20px_55px_rgba(15,23,42,0.22)] ring-1 ring-slate-300 print:shadow-none print:ring-0"
+    >
+      <div className="min-h-[255mm]">{children}</div>
+    </motion.article>
+  </motion.div>
+);
+
+const LetterDate = () => (
+  <div className="mb-8 text-right">
+    <p>Bandung, {formatDate(new Date().toISOString())}</p>
+  </div>
+);
+
+const LetterRecipient = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => <div className="mb-8 space-y-0.5">{children}</div>;
+
+const LetterMeta = ({
+  subject,
+  attachment = "-",
+}: {
+  subject: string;
+  attachment?: string;
+}) => (
+  <table className="mb-8 w-full border-separate border-spacing-0">
+    <tbody>
+      <DataRow label="Lampiran" labelClassName="w-[22mm]">
+        {attachment}
+      </DataRow>
+      <DataRow label="Perihal" labelClassName="w-[22mm]" valueClassName="font-semibold">
+        {subject}
+      </DataRow>
+    </tbody>
+  </table>
+);
+
+const Paragraph = ({ children }: { children: React.ReactNode }) => (
+  <p className="mb-4 text-justify indent-[12mm]">{children}</p>
+);
+
+const DataRow = ({
+  label,
+  children,
+  valueClassName = "",
+  labelClassName = "w-[45mm]",
+}: {
+  label: string;
+  children: React.ReactNode;
+  valueClassName?: string;
+  labelClassName?: string;
+}) => (
+  <tr>
+    <td className={`py-0.5 pr-2 align-top ${labelClassName}`}>{label}</td>
+    <td className="w-[4mm] py-0.5 pr-2 align-top">:</td>
+    <td className={`py-0.5 align-top ${valueClassName}`}>{children}</td>
+  </tr>
+);
+
+const SignatureBlock = ({
+  name,
+  signature,
+}: {
+  name: string;
+  signature: string;
+}) => (
+  <div className="mt-10 flex justify-end">
+    <div className="w-[55mm] text-left">
+      <p>Hormat saya,</p>
+      <div className="my-2 flex h-[25mm] w-[42mm] items-center justify-center">
+        {signature ? (
+          <Image
+            src={signature}
+            alt="Tanda Tangan"
+            width={160}
+            height={96}
+            unoptimized
+            className="max-h-full max-w-full object-contain mix-blend-multiply"
+          />
+        ) : (
+          <span className="text-[10pt] italic text-slate-300">[Tanda Tangan]</span>
+        )}
+      </div>
+      <p className="font-semibold">
+        {name || "[Nama Lengkap]"}
+      </p>
+    </div>
+  </div>
+);
+
+const LamaranTemplate = ({ data }: { data: LamaranForm }) => (
+  <LetterShell>
+    <LetterDate />
+    <LetterMeta
+      attachment="1 berkas"
+      subject={`Lamaran Pekerjaan sebagai ${data.posisiDilamar || "[Posisi yang Dilamar]"}`}
+    />
+
+    <LetterRecipient>
+      <p>Kepada Yth.</p>
+      <p>Bapak/Ibu Pimpinan HRD</p>
+      <p className="font-semibold uppercase">
+        {data.namaPerusahaan || "[Nama Perusahaan]"}
+      </p>
+      <p className="whitespace-pre-wrap">{data.alamatPerusahaan || "[Alamat Perusahaan]"}</p>
+      <p>di tempat</p>
+    </LetterRecipient>
+
+    <div className="mb-4">
+      <p>Dengan hormat,</p>
+    </div>
+
+    <Paragraph>
+      Berdasarkan informasi lowongan pekerjaan yang saya peroleh dari {data.sumberLowongan || "[Sumber Lowongan]"},
+      dengan ini saya mengajukan lamaran pekerjaan untuk posisi
+      <span className="font-semibold"> {data.posisiDilamar || "[Posisi yang Dilamar]"}</span> pada
+      <span className="font-semibold"> {data.namaPerusahaan || "[Nama Perusahaan]"}</span>.
+    </Paragraph>
+
+    <div className="mb-4">
+      <p>Adapun identitas diri saya adalah sebagai berikut:</p>
+      <table className="ml-[12mm] mt-2 w-[142mm] border-separate border-spacing-0">
+        <tbody>
+          <DataRow label="Nama" valueClassName="font-medium">{data.namaLengkap || "[Nama Lengkap]"}</DataRow>
+          <DataRow label="Tempat, Tanggal Lahir">
+            {data.tempatLahir || "[Tempat]"}, {formatDate(data.tanggalLahir) || "[Tanggal Lahir]"}
+          </DataRow>
+          <DataRow label="Pendidikan Terakhir" valueClassName="uppercase">{data.pendidikanTerakhir || "[Pendidikan]"}</DataRow>
+          <DataRow label="Alamat">{data.alamat || "[Alamat]"}</DataRow>
+          <DataRow label="Nomor Telepon">{data.nomorTelepon || "[No. Telp]"}</DataRow>
+          <DataRow label="Email">{data.email || "[Email]"}</DataRow>
+        </tbody>
+      </table>
+    </div>
+
+    <Paragraph>
+      Saya memiliki latar belakang pendidikan, kemampuan, dan motivasi yang relevan dengan posisi tersebut.
+      {data.deskripsiDiri
+        ? ` ${data.deskripsiDiri}`
+        : " [Deskripsi singkat mengenai pengalaman, keterampilan, dan kelebihan pelamar]."}
+    </Paragraph>
+
+    <Paragraph>
+      Saya tertarik melamar posisi ini karena {data.alasanMelamar || "[Alasan Melamar]"}.
+      Saya berharap dapat memberikan kontribusi yang baik serta berkembang bersama perusahaan yang Bapak/Ibu pimpin.
+    </Paragraph>
+
+    <Paragraph>
+      Sebagai bahan pertimbangan, bersama surat ini saya lampirkan berkas pendukung yang diperlukan.
+      Besar harapan saya agar Bapak/Ibu berkenan memberikan kesempatan kepada saya untuk mengikuti tahap seleksi
+      atau wawancara sehingga saya dapat menjelaskan lebih lanjut mengenai potensi dan kualifikasi yang saya miliki.
+    </Paragraph>
+    <Paragraph>
+      Demikian surat lamaran pekerjaan ini saya sampaikan. Atas perhatian dan kesempatan yang diberikan,
+      saya ucapkan terima kasih.
+    </Paragraph>
+
+    <SignatureBlock name={data.namaLengkap} signature={data.tandaTangan} />
+  </LetterShell>
+);
+
+const MagangTemplate = ({ data }: { data: MagangForm }) => (
+  <LetterShell>
+    <LetterDate />
+    <LetterMeta attachment="1 berkas" subject="Permohonan Magang" />
+
+    <LetterRecipient>
+      <p>Kepada Yth.</p>
+      <p>Bapak/Ibu Pimpinan / HRD</p>
+      <p className="font-semibold uppercase">
+        {data.namaPerusahaanTujuan || "[Nama Perusahaan]"}
+      </p>
+      <p>di tempat</p>
+    </LetterRecipient>
+
+    <div className="mb-4">
+      <p>Dengan hormat,</p>
+    </div>
+
+    <div className="mb-4">
+      <p>
+        Saya yang bertanda tangan di bawah ini:
+      </p>
+      <table className="ml-[12mm] mt-2 w-[142mm] border-separate border-spacing-0">
+        <tbody>
+          <DataRow label="Nama" valueClassName="font-medium">{data.namaLengkap || "[Nama Lengkap]"}</DataRow>
+          <DataRow label="Universitas / Instansi">{data.universitas || "[Universitas]"}</DataRow>
+          <DataRow label="Program Studi / Jurusan">{data.jurusan || "[Jurusan]"}</DataRow>
+          <DataRow label="Semester">{data.semester || "[Semester]"}</DataRow>
+          <DataRow label="No. Telepon">{data.nomorTelepon || "[No. Telp]"}</DataRow>
+          <DataRow label="Email">{data.email || "[Email]"}</DataRow>
+        </tbody>
+      </table>
+    </div>
+
+    <Paragraph>
+      Melalui surat ini, saya mengajukan permohonan kepada Bapak/Ibu agar dapat diberikan kesempatan
+      untuk melaksanakan kegiatan magang
+      <span className="font-semibold"> {data.tujuanMagang || "[Tujuan Magang]"}</span> di
+      <span className="font-semibold"> {data.namaPerusahaanTujuan || "[Nama Perusahaan]"}</span>
+      selama <span className="font-semibold">{data.lamaMagang || "[Durasi]"}</span>.
+    </Paragraph>
+
+    <Paragraph>
+      Kegiatan magang ini saya ajukan sebagai bagian dari pengembangan kompetensi akademik dan profesional,
+      sekaligus sebagai sarana untuk memperoleh pengalaman kerja secara langsung sesuai bidang yang saya pelajari.
+      {data.deskripsiDiri
+        ? ` ${data.deskripsiDiri}`
+        : " [Deskripsi singkat mengenai motivasi, kemampuan, dan tujuan mengikuti program magang]."}
+    </Paragraph>
+
+    <Paragraph>
+      Selama mengikuti kegiatan magang, saya bersedia mematuhi seluruh peraturan, tata tertib, dan ketentuan
+      yang berlaku di perusahaan. Saya juga berkomitmen untuk menjaga nama baik universitas/instansi serta
+      memberikan kontribusi positif sesuai arahan dan kebutuhan perusahaan.
+    </Paragraph>
+    <Paragraph>
+      Sebagai bahan pertimbangan, bersama surat ini saya lampirkan berkas pendukung yang diperlukan.
+      Besar harapan saya agar Bapak/Ibu berkenan menerima permohonan magang ini.
+    </Paragraph>
+    <Paragraph>
+      Demikian surat permohonan magang ini saya sampaikan. Atas perhatian dan kesempatan yang diberikan,
+      saya ucapkan terima kasih.
+    </Paragraph>
+
+    <SignatureBlock name={data.namaLengkap} signature={data.tandaTangan} />
+  </LetterShell>
+);
+
+const letterTemplates = {
+  lamaran: {
+    getData: (state: ReturnType<typeof useFormContext>["state"]) =>
+      state.lamaran ?? defaultLamaranData,
+    render: (data: LamaranForm) => <LamaranTemplate data={data} />,
+  },
+  magang: {
+    getData: (state: ReturnType<typeof useFormContext>["state"]) =>
+      state.magang ?? defaultMagangData,
+    render: (data: MagangForm) => <MagangTemplate data={data} />,
+  },
+};
+
 export const PreviewSurat: React.FC<PreviewSuratProps> = ({ type }) => {
   const { state } = useFormContext();
 
   if (type === "lamaran") {
-    const data = state.lamaran;
-    if (!data) return <EmptyPreview />;
-
-    return (
-      <div className="bg-white border border-gray-200 shadow-lg rounded-xl overflow-hidden p-8 font-serif text-sm md:text-base leading-relaxed text-gray-800 h-full max-h-[800px] overflow-y-auto">
-        <div className="text-right mb-8">
-          <p>{formatDate(new Date().toISOString())}</p>
-        </div>
-
-        <div className="mb-8">
-          <p>Yth. HRD Manager</p>
-          <p className="font-bold">{data.namaPerusahaan || "[Nama Perusahaan]"}</p>
-          <p className="whitespace-pre-wrap">{data.alamatPerusahaan || "[Alamat Perusahaan]"}</p>
-        </div>
-
-        <div className="mb-4">
-          <p>Dengan hormat,</p>
-        </div>
-
-        <div className="mb-4 text-justify">
-          <p>
-            Berdasarkan informasi lowongan pekerjaan yang saya peroleh dari {data.sumberLowongan || "[Sumber Lowongan]"}, 
-            bersama surat ini saya bermaksud mengajukan diri untuk melamar pekerjaan pada posisi 
-            <span className="font-bold"> {data.posisiDilamar || "[Posisi yang Dilamar]"}</span> di perusahaan yang Bapak/Ibu pimpin.
-          </p>
-        </div>
-
-        <div className="mb-4">
-          <p>Berikut adalah data diri saya:</p>
-          <table className="w-full mt-2 ml-4">
-            <tbody>
-              <tr>
-                <td className="w-48 align-top">Nama</td>
-                <td className="w-4 align-top">:</td>
-                <td className="font-medium">{data.namaLengkap || "[Nama Lengkap]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Tempat, Tanggal Lahir</td>
-                <td className="w-4 align-top">:</td>
-                <td>
-                  {data.tempatLahir || "[Tempat]"}, {formatDate(data.tanggalLahir) || "[Tanggal Lahir]"}
-                </td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Pendidikan Terakhir</td>
-                <td className="w-4 align-top">:</td>
-                <td className="uppercase">{data.pendidikanTerakhir || "[Pendidikan]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Alamat</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.alamat || "[Alamat]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Nomor Telepon</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.nomorTelepon || "[No. Telp]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Email</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.email || "[Email]"}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mb-4 text-justify">
-          <p>
-            {data.deskripsiDiri || "[Deskripsi Diri]"}
-          </p>
-        </div>
-        
-        <div className="mb-4 text-justify">
-          <p>
-            Alasan saya melamar posisi ini adalah karena {data.alasanMelamar || "[Alasan Melamar]"}.
-          </p>
-        </div>
-
-        <div className="mb-8 text-justify">
-          <p>
-            Besar harapan saya agar Bapak/Ibu bersedia meluangkan waktu untuk memberikan kesempatan wawancara, 
-            sehingga saya dapat menjelaskan lebih rinci mengenai potensi yang saya miliki.
-          </p>
-          <p className="mt-2">
-            Atas perhatian dan kesempatan yang diberikan, saya ucapkan terima kasih.
-          </p>
-        </div>
-
-        <div className="flex flex-col items-end mr-8">
-          <p className="mb-2">Hormat saya,</p>
-          <div className="h-24 w-32 flex items-center justify-center mb-2 border border-transparent hover:border-gray-200 rounded">
-            {data.tandaTangan ? (
-              <img src={data.tandaTangan} alt="Tanda Tangan" className="max-h-full max-w-full object-contain mix-blend-multiply" />
-            ) : (
-              <span className="text-gray-300 text-xs italic">[Tanda Tangan]</span>
-            )}
-          </div>
-          <p className="font-bold underline">{data.namaLengkap || "[Nama Lengkap]"}</p>
-        </div>
-      </div>
-    );
+    const template = letterTemplates.lamaran;
+    return template.render(template.getData(state));
   }
 
-  if (type === "magang") {
-    const data = state.magang;
-    if (!data) return <EmptyPreview />;
-
-    return (
-      <div className="bg-white border border-gray-200 shadow-lg rounded-xl overflow-hidden p-8 font-serif text-sm md:text-base leading-relaxed text-gray-800 h-full max-h-[800px] overflow-y-auto">
-        <div className="text-right mb-8">
-          <p>{formatDate(new Date().toISOString())}</p>
-        </div>
-
-        <div className="mb-8">
-          <p>Yth. Pimpinan / HRD</p>
-          <p className="font-bold">{data.namaPerusahaanTujuan || "[Nama Perusahaan]"}</p>
-        </div>
-
-        <div className="mb-4">
-          <p>Dengan hormat,</p>
-        </div>
-
-        <div className="mb-4 text-justify">
-          <p>
-            Saya yang bertanda tangan di bawah ini:
-          </p>
-          <table className="w-full mt-2 ml-4">
-            <tbody>
-              <tr>
-                <td className="w-48 align-top">Nama</td>
-                <td className="w-4 align-top">:</td>
-                <td className="font-medium">{data.namaLengkap || "[Nama Lengkap]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Universitas / Instansi</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.universitas || "[Universitas]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Program Studi / Jurusan</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.jurusan || "[Jurusan]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Semester</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.semester || "[Semester]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">No. Telepon</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.nomorTelepon || "[No. Telp]"}</td>
-              </tr>
-              <tr>
-                <td className="w-48 align-top">Email</td>
-                <td className="w-4 align-top">:</td>
-                <td>{data.email || "[Email]"}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mb-4 text-justify">
-          <p>
-            Bersama surat ini, saya bermaksud mengajukan permohonan untuk dapat melaksanakan kegiatan magang 
-            <span className="font-bold"> {data.tujuanMagang || "[Tujuan Magang]"}</span> di perusahaan yang Bapak/Ibu pimpin 
-            selama <span className="font-bold">{data.lamaMagang || "[Durasi]"}</span>.
-          </p>
-        </div>
-        
-        <div className="mb-4 text-justify">
-          <p>
-            {data.deskripsiDiri || "[Deskripsi / Motivasi Magang]"}
-          </p>
-        </div>
-
-        <div className="mb-8 text-justify">
-          <p>
-            Besar harapan saya agar Bapak/Ibu berkenan menerima permohonan magang ini. 
-            Saya berkomitmen untuk mematuhi semua peraturan yang berlaku di perusahaan dan memberikan kontribusi positif.
-          </p>
-          <p className="mt-2">
-            Demikian surat permohonan magang ini saya sampaikan. Atas perhatian dan kesempatannya, saya ucapkan terima kasih.
-          </p>
-        </div>
-
-        <div className="flex flex-col items-end mr-8">
-          <p className="mb-2">Hormat saya,</p>
-          <div className="h-24 w-32 flex items-center justify-center mb-2 border border-transparent hover:border-gray-200 rounded">
-            {data.tandaTangan ? (
-              <img src={data.tandaTangan} alt="Tanda Tangan" className="max-h-full max-w-full object-contain mix-blend-multiply" />
-            ) : (
-              <span className="text-gray-300 text-xs italic">[Tanda Tangan]</span>
-            )}
-          </div>
-          <p className="font-bold underline">{data.namaLengkap || "[Nama Lengkap]"}</p>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+  const template = letterTemplates.magang;
+  return template.render(template.getData(state));
 };
-
-const EmptyPreview = () => (
-  <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-12 h-full flex flex-col items-center justify-center text-gray-400">
-    <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-    </svg>
-    <p className="text-lg font-medium">Pratinjau Surat</p>
-    <p className="text-sm mt-2 text-center max-w-xs">Isi formulir di sebelah kiri untuk melihat tampilan surat Anda secara real-time di sini.</p>
-  </div>
-);

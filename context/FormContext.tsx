@@ -68,7 +68,9 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const mountTimer = setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
     const saved = localStorage.getItem("suratai_form_draft");
     if (saved) {
       try {
@@ -78,6 +80,8 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({
         console.error("Failed to parse local storage", e);
       }
     }
+
+    return () => clearTimeout(mountTimer);
   }, []);
 
   useEffect(() => {

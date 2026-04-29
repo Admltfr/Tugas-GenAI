@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/layout";
 import { FormProvider } from "@/context/FormContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,20 @@ export const metadata: Metadata = {
   ],
 };
 
+const themeScript = `
+  (() => {
+    try {
+      const theme = localStorage.getItem("suratai_theme");
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const resolvedTheme = theme === "dark" || theme === "light" ? theme : prefersDark ? "dark" : "light";
+      document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
+      document.documentElement.style.colorScheme = resolvedTheme;
+    } catch {
+      document.documentElement.classList.remove("dark");
+    }
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,14 +49,18 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-white">
-        <FormProvider>
-          <Navbar />
-          {children}
-          <Footer />
-        </FormProvider>
+      <body className="min-h-full flex flex-col bg-white text-gray-950 transition-colors dark:bg-slate-950 dark:text-slate-100">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <ThemeProvider>
+          <FormProvider>
+            <Navbar />
+            {children}
+            <Footer />
+          </FormProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

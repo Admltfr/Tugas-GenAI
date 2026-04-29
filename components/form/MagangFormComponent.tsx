@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   InputField,
   TextAreaField,
@@ -55,9 +56,12 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
 
   useEffect(() => {
     if (isHydrated && state.magang) {
-      setFormData(state.magang);
+      const timer = setTimeout(() => {
+        setFormData(state.magang as MagangForm);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [isHydrated]); // Only run once when hydrated
+  }, [isHydrated, state.magang]); // Only run once when hydrated
 
   useEffect(() => {
     if (isHydrated) {
@@ -101,9 +105,14 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
-      <p className="text-gray-600 mb-8">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.38, ease: "easeOut", delay: 0.06 }}
+      className="bg-white rounded-xl shadow-lg p-8 transition-colors dark:bg-slate-900 dark:shadow-slate-950/30"
+    >
+      <h1 className="text-3xl font-bold text-gray-900 mb-2 dark:text-white">{title}</h1>
+      <p className="text-gray-600 mb-8 dark:text-slate-300">
         Lengkapi informasi permohonan magang Anda di bawah ini dengan data yang
         akurat dan valid.
       </p>
@@ -111,7 +120,7 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1: Data Akademik & Magang */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700 dark:text-white">
             🎓 Data Akademik & Magang
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -180,7 +189,7 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
 
         {/* Section 2: Data Pribadi */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700 dark:text-white">
             📋 Data Pribadi
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -227,7 +236,7 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
 
         {/* Section 3: Informasi Kontak */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700 dark:text-white">
             📞 Informasi Kontak
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -266,7 +275,7 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
 
         {/* Section 4: Deskripsi Diri */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700 dark:text-white">
             ✨ Deskripsi Diri
           </h2>
           <TextAreaField
@@ -279,14 +288,14 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
             rows={6}
             required
           />
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 mt-2 dark:text-slate-400">
             Jumlah karakter: {formData.deskripsiDiri.length}
           </p>
         </div>
 
         {/* Section 5: Tanda Tangan */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700 dark:text-white">
             ✍️ Tanda Tangan
           </h2>
           <SignatureUploadField
@@ -309,7 +318,7 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
         </div>
 
         {/* Submit Button */}
-        <div className="flex flex-col gap-4 pt-8 border-t border-gray-200">
+        <div className="flex flex-col gap-4 pt-8 border-t border-gray-200 dark:border-slate-700">
           {isSubmitted && (
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-green-700 font-medium">
@@ -326,7 +335,7 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
           <button
             type="button"
             onClick={() => setIsResetModalOpen(true)}
-            className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Reset Form
           </button>
@@ -365,6 +374,6 @@ export const MagangFormComponent: React.FC<MagangFormProps> = ({
           dispatch({ type: "SET_MAGANG", payload: emptyForm });
         }}
       />
-    </div>
+    </motion.div>
   );
 };
