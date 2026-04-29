@@ -8,14 +8,14 @@ import {
   DateField,
   SignatureUploadField,
 } from "@/components/form";
-import { validateBiodataForm } from "@/lib/validation";
-import type { BiodataForm, ValidationError } from "@/types";
+import { validateLamaranForm } from "@/lib/validation";
+import type { LamaranForm, ValidationError } from "@/types";
 import { useFormContext } from "@/context/FormContext";
 import { ConfirmModal } from "@/components/ui";
 
-interface BiodataFormProps {
+interface LamaranFormProps {
   title: string;
-  onSubmit: (data: BiodataForm) => void;
+  onSubmit: (data: LamaranForm) => void;
 }
 
 const EDUCATION_OPTIONS = [
@@ -26,12 +26,12 @@ const EDUCATION_OPTIONS = [
   { value: "doktor", label: "Doktor (S3)" },
 ];
 
-export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
+export const LamaranFormComponent: React.FC<LamaranFormProps> = ({
   title,
   onSubmit,
 }) => {
   const { state, dispatch, isHydrated } = useFormContext();
-  const [formData, setFormData] = useState<BiodataForm>({
+  const [formData, setFormData] = useState<LamaranForm>({
     namaLengkap: "",
     tempatLahir: "",
     tanggalLahir: "",
@@ -40,7 +40,12 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
     nomorTelepon: "",
     pendidikanTerakhir: "",
     deskripsiDiri: "",
+    alamatPerusahaan: "",
+    sumberLowongan: "",
+    alasanMelamar: "",
     tandaTangan: "",
+    posisiDilamar: "",
+    namaPerusahaan: "",
   });
 
   const [errors, setErrors] = useState<ValidationError>({});
@@ -48,15 +53,15 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   useEffect(() => {
-    if (isHydrated && state.biodata) {
-      setFormData(state.biodata);
+    if (isHydrated && state.lamaran) {
+      setFormData(state.lamaran);
     }
   }, [isHydrated]); // Only run once when hydrated
 
   useEffect(() => {
     if (isHydrated) {
       const timer = setTimeout(() => {
-        dispatch({ type: "SET_BIODATA", payload: formData });
+        dispatch({ type: "SET_LAMARAN", payload: formData });
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -83,7 +88,7 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const validationErrors = validateBiodataForm(formData);
+    const validationErrors = validateLamaranForm(formData);
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -98,12 +103,76 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
     <div className="bg-white rounded-xl shadow-lg p-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
       <p className="text-gray-600 mb-8">
-        Lengkapi informasi biodata Anda di bawah ini dengan data yang akurat dan
-        valid.
+        Lengkapi informasi lamaran kerja Anda di bawah ini dengan data yang akurat
+        dan valid.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Section 1: Data Pribadi */}
+        {/* Section 1: Data Perusahaan & Posisi */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+            🏢 Data Perusahaan & Posisi
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputField
+              label="Posisi yang Dilamar"
+              name="posisiDilamar"
+              value={formData.posisiDilamar}
+              onChange={handleChange}
+              error={errors.posisiDilamar}
+              placeholder="Contoh: Software Engineer"
+              required
+            />
+            <InputField
+              label="Nama Perusahaan"
+              name="namaPerusahaan"
+              value={formData.namaPerusahaan}
+              onChange={handleChange}
+              error={errors.namaPerusahaan}
+              placeholder="Contoh: PT Teknologi Nusantara"
+              required
+            />
+          </div>
+
+          <div className="mt-6">
+            <InputField
+              label="Alamat Perusahaan"
+              name="alamatPerusahaan"
+              value={formData.alamatPerusahaan}
+              onChange={handleChange}
+              error={errors.alamatPerusahaan}
+              placeholder="Contoh: Jl. Sudirman No. 1, Jakarta"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <InputField
+              label="Sumber Lowongan"
+              name="sumberLowongan"
+              value={formData.sumberLowongan}
+              onChange={handleChange}
+              error={errors.sumberLowongan}
+              placeholder="Contoh: LinkedIn, Website Perusahaan"
+              required
+            />
+          </div>
+
+          <div className="mt-6">
+            <TextAreaField
+              label="Alasan Melamar"
+              name="alasanMelamar"
+              value={formData.alasanMelamar}
+              onChange={handleChange}
+              error={errors.alasanMelamar}
+              placeholder="Jelaskan alasan Anda melamar posisi ini di perusahaan tersebut."
+              rows={4}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Section 2: Data Pribadi */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
             📋 Data Pribadi
@@ -150,7 +219,7 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
           </div>
         </div>
 
-        {/* Section 2: Informasi Kontak */}
+        {/* Section 3: Informasi Kontak */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
             📞 Informasi Kontak
@@ -189,7 +258,7 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
           </div>
         </div>
 
-        {/* Section 3: Deskripsi Diri */}
+        {/* Section 4: Deskripsi Diri */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
             ✨ Deskripsi Diri
@@ -209,7 +278,7 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
           </p>
         </div>
 
-        {/* Section 4: Tanda Tangan */}
+        {/* Section 5: Tanda Tangan */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
             ✍️ Tanda Tangan
@@ -275,13 +344,18 @@ export const BiodataFormComponent: React.FC<BiodataFormProps> = ({
             nomorTelepon: "",
             pendidikanTerakhir: "",
             deskripsiDiri: "",
+            alamatPerusahaan: "",
+            sumberLowongan: "",
+            alasanMelamar: "",
             tandaTangan: "",
+            posisiDilamar: "",
+            namaPerusahaan: "",
           };
           setFormData(emptyForm);
           setErrors({});
           setIsSubmitted(false);
           setIsResetModalOpen(false);
-          dispatch({ type: "SET_BIODATA", payload: emptyForm });
+          dispatch({ type: "SET_LAMARAN", payload: emptyForm });
         }}
       />
     </div>

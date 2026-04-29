@@ -7,6 +7,24 @@ export interface BiodataForm {
   nomorTelepon: string;
   pendidikanTerakhir: string;
   deskripsiDiri: string;
+  tandaTangan: string;
+}
+
+export interface LamaranForm extends BiodataForm {
+  posisiDilamar: string;
+  namaPerusahaan: string;
+  alamatPerusahaan: string;
+  sumberLowongan: string;
+  alasanMelamar: string;
+}
+
+export interface MagangForm extends BiodataForm {
+  universitas: string;
+  jurusan: string;
+  semester: string;
+  tujuanMagang: string;
+  lamaMagang: string;
+  namaPerusahaanTujuan: string;
 }
 
 export interface FormFieldProps {

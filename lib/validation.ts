@@ -26,6 +26,7 @@ export const validateBiodataForm = (data: {
   nomorTelepon: string;
   pendidikanTerakhir: string;
   deskripsiDiri: string;
+  tandaTangan: string;
 }): ValidationError => {
   const errors: ValidationError = {};
 
@@ -65,6 +66,97 @@ export const validateBiodataForm = (data: {
 
   if (!data.deskripsiDiri.trim()) {
     errors.deskripsiDiri = "Deskripsi singkat diri wajib diisi";
+  }
+
+  if (!data.tandaTangan) {
+    errors.tandaTangan = "Tanda tangan wajib diunggah";
+  }
+
+  return errors;
+};
+
+export const validateLamaranForm = (data: {
+  namaLengkap: string;
+  tempatLahir: string;
+  tanggalLahir: string;
+  alamat: string;
+  email: string;
+  nomorTelepon: string;
+  pendidikanTerakhir: string;
+  deskripsiDiri: string;
+  tandaTangan: string;
+  posisiDilamar: string;
+  namaPerusahaan: string;
+  alamatPerusahaan: string;
+  sumberLowongan: string;
+  alasanMelamar: string;
+}): ValidationError => {
+  const errors = validateBiodataForm(data);
+
+  if (!data.posisiDilamar.trim()) {
+    errors.posisiDilamar = "Posisi yang dilamar wajib diisi";
+  }
+
+  if (!data.namaPerusahaan.trim()) {
+    errors.namaPerusahaan = "Nama perusahaan wajib diisi";
+  }
+
+  if (!data.alamatPerusahaan.trim()) {
+    errors.alamatPerusahaan = "Alamat perusahaan wajib diisi";
+  }
+
+  if (!data.sumberLowongan.trim()) {
+    errors.sumberLowongan = "Sumber lowongan wajib diisi";
+  }
+
+  if (!data.alasanMelamar.trim()) {
+    errors.alasanMelamar = "Alasan melamar wajib diisi";
+  }
+
+  return errors;
+};
+
+export const validateMagangForm = (data: {
+  namaLengkap: string;
+  tempatLahir: string;
+  tanggalLahir: string;
+  alamat: string;
+  email: string;
+  nomorTelepon: string;
+  pendidikanTerakhir: string;
+  deskripsiDiri: string;
+  tandaTangan: string;
+  universitas: string;
+  jurusan: string;
+  semester: string;
+  tujuanMagang: string;
+  lamaMagang: string;
+  namaPerusahaanTujuan: string;
+}): ValidationError => {
+  const errors = validateBiodataForm(data);
+
+  if (!data.universitas.trim()) {
+    errors.universitas = "Universitas wajib diisi";
+  }
+
+  if (!data.jurusan.trim()) {
+    errors.jurusan = "Jurusan wajib diisi";
+  }
+
+  if (!data.semester.trim()) {
+    errors.semester = "Semester wajib diisi";
+  }
+
+  if (!data.tujuanMagang.trim()) {
+    errors.tujuanMagang = "Tujuan magang wajib diisi";
+  }
+
+  if (!data.lamaMagang.trim()) {
+    errors.lamaMagang = "Lama magang wajib diisi";
+  }
+
+  if (!data.namaPerusahaanTujuan.trim()) {
+    errors.namaPerusahaanTujuan = "Nama perusahaan tujuan wajib diisi";
   }
 
   return errors;

@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { BiodataFormComponent } from "@/components/form/BiodataFormComponent";
-import type { BiodataForm } from "@/types";
+import { LamaranFormComponent } from "@/components/form/LamaranFormComponent";
+import { PreviewSurat } from "@/components/preview";
+import type { LamaranForm } from "@/types";
+import { useFormContext } from "@/context/FormContext";
 
 export default function LamaranPage() {
-  const handleFormSubmit = (data: BiodataForm) => {
+  const { dispatch } = useFormContext();
+
+  const handleFormSubmit = (data: LamaranForm) => {
     console.log("Data surat lamaran:", data);
+    dispatch({ type: "SET_LAMARAN", payload: data });
     // TODO: Implement letter generation logic here
   };
 
@@ -29,11 +34,18 @@ export default function LamaranPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <BiodataFormComponent
-          title="Formulir Surat Lamaran Kerja"
-          onSubmit={handleFormSubmit}
-        />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <LamaranFormComponent
+              title="Formulir Surat Lamaran Kerja"
+              onSubmit={handleFormSubmit}
+            />
+          </div>
+          <div className="lg:sticky lg:top-8 h-fit">
+            <PreviewSurat type="lamaran" />
+          </div>
+        </div>
       </div>
     </main>
   );
